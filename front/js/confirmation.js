@@ -6,11 +6,9 @@ function displayOrderId(orderId) {
   const orderIdElements = document.querySelector("#orderId");
   orderIdElements.innerText = orderId;
 }
-//Effacer tout le localStorage sauf le formulaire
+
+//Effacer la clé orderId dans localStorage
 function removeKeyLoacalStorage(key) {
   localStorage.removeItem(key);
 }
-
-// removeKeyLoacalStorage("contact");
-// removeKeyLoacalStorage("basket");
 removeKeyLoacalStorage("orderId");
