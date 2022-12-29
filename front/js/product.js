@@ -1,23 +1,31 @@
 //=======================AFICHER LES DETAILS DU PRODUIT DANS LA PAGE PRODUIT================
+
 //______________________Récupérer l’id du produit à afficher dans l'URL_________
+
 const str = window.location.href;
 const url = new URL(str);
 const id = url.searchParams.get("id");
-//des variable a besoin
+
+//______________________Insérer un produit et ses détails dans la page Produit__________
+//-----Declaration des variable a besoin
 let prixProduit = 0;
 let imgUrl, altTexte;
 let nameProduct;
+//---------Récuperer du produit selectioné avec la requete fetch (Requette vers l'API)---------
 
-//______________________Insérer un produit et ses détails dans la page Produit__________
+/**Requete Get a product in database stored with given id */
 fetch(`http://localhost:3000/api/products/${id}`)
   .then(function (res) {
     return res.json();
   })
   .then(function (data) {
-    afficheProduit(data);
+    affichProduit(data);
   });
 
-function afficheProduit(produit) {
+//---------Ajouter les données au DOM----------
+
+/**Afficher le produit  */
+function affichProduit(produit) {
   const { imageUrl, altTxt, name, price, description, colors } = produit;
   prixProduit = price;
   imgUrl = imageUrl;
@@ -29,22 +37,20 @@ function afficheProduit(produit) {
   creatDescription(description);
   createOptionColor(colors);
 }
-
-//creer l'image
+/**Ajouter les elements au DOM */
+// ajouter l'image du produit (cibler l'image)
 function createImg(imageUrl, altTxt) {
   const image = document.createElement("img");
   image.src = imageUrl;
   image.alt = altTxt;
   appendChild(image);
 }
-// ajouter l'image a la page produit
 function appendChild(image) {
   const item = document.querySelector(".item__img");
   if (item != null) {
     item.appendChild(image);
   }
 }
-
 //remplir le titre
 function createNameTitle(name) {
   const h1 = document.querySelector("#title");
@@ -79,15 +85,15 @@ function appendOptionToSelect(option) {
 //======================GESTION DU PANIER===============
 //____________________Récupération des données selecionné par l'utilisateur et ajouter au panier_________
 
-//----------Sélection du bouton ajouter au panier
+//----------Sélection du bouton Ajouter au panier
 const btn_ajoutPanier = document.querySelector("#addToCart");
 
 //---------Ecouter le bouton et ajouter au panier
 btn_ajoutPanier.addEventListener("click", (event) => {
   event.preventDefault();
 
-  const idColor = document.querySelector("#colors"); //selection de l'id du produit
-  const choixColor = idColor.value; //mettre le choix de l'utilisateur dans une var
+  const idColor = document.querySelector("#colors");
+  const choixColor = idColor.value;
   const idQuantity = document.querySelector("#quantity");
   const choixQuantity = idQuantity.value;
   if (
@@ -107,7 +113,6 @@ btn_ajoutPanier.addEventListener("click", (event) => {
     id: id,
     color: choixColor,
     quantity: Number(choixQuantity),
-    price: prixProduit,
     image: imgUrl,
     alt: altTexte,
     name: nameProduct,
@@ -119,11 +124,8 @@ btn_ajoutPanier.addEventListener("click", (event) => {
   //-------------Déclaration de la variable "saveProductInLocalStorage"
   //------------dans laquelle on met les clés et les values qui sont dans le local storage
 
-  let saveProductInLocalStorage = JSON.parse(localStorage.getItem("basket")); //JSON.parse c'est pour convertir les données au format JSON qui sont dans le localStorage en objet javascript
-  // console.log(saveProductInLocalStorage);
-
-  //on test si la panier n'est pas vide
-  testBasket(saveProductInLocalStorage);
+  let saveProductInLocalStorage = JSON.parse(localStorage.getItem("basket"));
+  //JSON.parse c'est pour convertir les données au format JSON qui sont dans le localStorage en objet javascript
 
   //fonction d'enregistrer du produit dans localStorage
   function saveProduct(saveProductInLocalStorage) {
@@ -132,31 +134,47 @@ btn_ajoutPanier.addEventListener("click", (event) => {
 
   //fonction pour ajouter du produit dans local storage
   function addProductInLocalStorage(product) {
-    let foundProduct = saveProductInLocalStorage.find(
+    let findProduct = saveProductInLocalStorage.find(
       ((p) => p.id == dataBasket.id) && ((col) => col.color == dataBasket.color)
     );
-    if (foundProduct != undefined) {
-      console.log("produit existe deja");
-      foundProduct.quantity = dataBasket.quantity + foundProduct.quantity;
-    } else {
-      saveProductInLocalStorage.push(dataBasket);
+    if (findProduct != undefined) {
+      const totalNewQuantity = dataBasket.quantity + findProduct.quantity;
+
+      if (totalNewQuantity <= 100) {
+        findProduct.quantity = totalNewQuantity;
+        alert("La quantité du produit a bien été mise à jour.");
+      } else {
+        alert(
+          "La quantité d'un produit (même identifiant et même couleur) ne peut pas dépasser 100. Merci de rectifier la quantité choisie."
+        );
+      }
     }
-    saveProduct(saveProductInLocalStorage);
+    // Si le produit et la couleur choisis n'existent pas encore dans le localStorage alors on ajoute le produit et les options choisies
+    else {
+      // on met les options du produit choisi dans une variable "saveProductInLocalStorage"
+      saveProductInLocalStorage.push(dataBasket);
+      alert("le produit canapé a bien été ajouté au panier");
+    }
+    saveProduct(saveProductInLocalStorage); //enregistré le produit dans le localStorage
   }
+  //on test si la panier n'est pas vide
+  testBasket(saveProductInLocalStorage);
 
   //fonction test si le panier est vide
   function testBasket() {
     //s'il ya deja des produits enregister dans le localStorage
     if (saveProductInLocalStorage) {
       addProductInLocalStorage();
+      console.log(saveProductInLocalStorage);
     }
-    //s'il n y'a pas deja des produits enregistrer dans le local storage
+    //s'il n y'a pas deja des produits enregistrer dans le localtorage
     else {
       saveProductInLocalStorage = [];
       addProductInLocalStorage();
-      console.log(saveProductInLocalStorage);
+      alert(
+        "Félicitations ! Vous venez d'ajouter votre premier produit dans le panier!"
+      );
     }
   }
-
   //window.location.href = "cart.html";
-});
+}); //end addevenlisner
